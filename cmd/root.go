@@ -38,6 +38,7 @@ var (
 	dnsreconFlag   bool
 	nmapFlag       bool
 	etherapeFlag   bool
+	printFlag      bool
 	outputFlag     string
 )
 
@@ -85,11 +86,16 @@ sec_report integra estas herramientas de forma eficiente para recopilar y analiz
 			fmt.Println("Performing ping...")
 		}
 		if nslookupFlag {
-			fmt.Println("Performing nslookup...")
+			result, err := pentesting.Nslookup(domainOrIP)
+			if err != nil {
+				fmt.Printf("Error al ejecutar nslookup: %v\n", err)
+				return
+			}
+			results.WriteString(fmt.Sprintf("Información de nslookup para la IP %s\n\n", domainOrIP))
+			results.WriteString(result)
 		}
 		if whoisFlag {
 			result, err := pentesting.Whois(domainOrIP)
-			// Imprimir el resultado
 			if err != nil {
 				fmt.Printf("Error al ejecutar whois: %v\n", err)
 				return
@@ -134,7 +140,7 @@ func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 	rootCmd.PersistentFlags().BoolVar(&pingFlag, "ping", false, "Perform a ping test")
-	rootCmd.PersistentFlags().BoolVar(&nslookupFlag, "nslookup", false, "Perform a DNS lookup")
+	rootCmd.PersistentFlags().BoolVar(&nslookupFlag, "nslookup", true, "Perform a DNS lookup")
 	rootCmd.PersistentFlags().BoolVar(&tracerouteFlag, "traceroute", false, "Perform a traceroute")
 	rootCmd.PersistentFlags().BoolVar(&whoisFlag, "whois", true, "Perform a WHOIS lookup")
 	rootCmd.PersistentFlags().BoolVar(&sublist3rFlag, "sublist3r", false, "Perform a sublist3r lookup")
@@ -144,6 +150,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&dnsreconFlag, "dnsrecon", false, "Perform a dnsrecon lookup")
 	rootCmd.PersistentFlags().BoolVar(&nmapFlag, "nmap", false, "Perform an Nmap scan")
 	rootCmd.PersistentFlags().BoolVar(&etherapeFlag, "etherape", false, "Open EtherApe for network visualization")
+	rootCmd.PersistentFlags().BoolVar(&printFlag, "print", true, "Print results in command line")
 	rootCmd.PersistentFlags().StringVarP(&outputFlag, "output", "o", "", "Output HTML report file")
 
 }
