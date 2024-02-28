@@ -146,6 +146,9 @@ sec_report integra estas herramientas de forma eficiente para recopilar y analiz
 				results.WriteString(result)
 			}(&results, &wg)
 		}
+		if dnsmapFlag {
+			pentesting.RunProgramRoutine(pentesting.Dnsmap, domainOrIP, &partial_results, &wg)
+		}
 
 		// Build report from partial results
 		wg.Wait()
@@ -196,7 +199,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&sublist3rFlag, "sublist3r", false, "Perform a sublist3r lookup")
 	rootCmd.PersistentFlags().BoolVar(&subfinderFlag, "subfinder", false, "Perform a subfinder lookup")
 	rootCmd.PersistentFlags().BoolVar(&findomainFlag, "findomain", false, "Perform a findomain lookup")
-	rootCmd.PersistentFlags().BoolVar(&dnsmapFlag, "dnsmap", false, "Perform a dnsmap lookup")
+	rootCmd.PersistentFlags().BoolVar(&dnsmapFlag, "dnsmap", true, "Perform a dnsmap lookup")
 	rootCmd.PersistentFlags().BoolVar(&dnsreconFlag, "dnsrecon", false, "Perform a dnsrecon lookup")
 	rootCmd.PersistentFlags().BoolVar(&nmapFlag, "nmap", true, "Perform an Nmap scan")
 	rootCmd.PersistentFlags().BoolVar(&etherapeFlag, "etherape", false, "Open EtherApe for network visualization")
