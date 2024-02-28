@@ -91,60 +91,17 @@ sec_report integra estas herramientas de forma eficiente para recopilar y analiz
 			fmt.Println("Performing ping...")
 		}
 		if tracerouteFlag {
-			wg.Add(1)
-			results := bytes.Buffer{}
-			partial_results = append(partial_results, &results)
-			go func(results *bytes.Buffer, wg *sync.WaitGroup) {
-				defer wg.Done()
-				result, err := pentesting.Traceroute(domainOrIP)
-				if err != nil {
-					fmt.Printf("Error al ejecutar traceroute: %v\n", err)
-				}
-				results.WriteString(fmt.Sprintf("Información de traceroute para la IP %s\n\n", domainOrIP))
-				results.WriteString(result)
-			}(&results, &wg)
+			pentesting.RunProgramRoutine(pentesting.Traceroute, domainOrIP, &partial_results, &wg)
 		}
 		if nslookupFlag {
-			wg.Add(1)
-			results := bytes.Buffer{}
-			partial_results = append(partial_results, &results)
-			go func(results *bytes.Buffer, wg *sync.WaitGroup) {
-				defer wg.Done()
-				result, err := pentesting.Nslookup(domainOrIP)
-				if err != nil {
-					fmt.Printf("Error al ejecutar nslookup: %v\n", err)
-				}
-				results.WriteString(fmt.Sprintf("Información de nslookup para la IP %s\n\n", domainOrIP))
-				results.WriteString(result)
-			}(&results, &wg)
+			pentesting.RunProgramRoutine(pentesting.Nslookup, domainOrIP, &partial_results, &wg)
 		}
 		if whoisFlag {
-			wg.Add(1)
-			results := bytes.Buffer{}
-			partial_results = append(partial_results, &results)
-			go func(results *bytes.Buffer, wg *sync.WaitGroup) {
-				defer wg.Done()
-				result, err := pentesting.Whois(domainOrIP)
-				if err != nil {
-					fmt.Printf("Error al ejecutar whois: %v\n", err)
-				}
-				results.WriteString(fmt.Sprintf("Información de whois para la IP %s\n\n", domainOrIP))
-				results.WriteString(result)
-			}(&results, &wg)
+			pentesting.RunProgramRoutine(pentesting.Whois, domainOrIP, &partial_results, &wg)
+			fmt.Println(partial_results[0].String())
 		}
 		if nmapFlag {
-			wg.Add(1)
-			results := bytes.Buffer{}
-			partial_results = append(partial_results, &results)
-			go func(results *bytes.Buffer, wg *sync.WaitGroup) {
-				defer wg.Done()
-				result, err := pentesting.Nmap(domainOrIP)
-				if err != nil {
-					fmt.Printf("Error al ejecutar nmap: %v\n", err)
-				}
-				results.WriteString(fmt.Sprintf("Información de nmap para la IP %s\n\n", domainOrIP))
-				results.WriteString(result)
-			}(&results, &wg)
+			pentesting.RunProgramRoutine(pentesting.Nmap, domainOrIP, &partial_results, &wg)
 		}
 		if dnsmapFlag {
 			pentesting.RunProgramRoutine(pentesting.Dnsmap, domainOrIP, &partial_results, &wg)
@@ -193,18 +150,32 @@ func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 	rootCmd.PersistentFlags().BoolVar(&pingFlag, "ping", false, "Perform a ping test")
-	rootCmd.PersistentFlags().BoolVar(&nslookupFlag, "nslookup", true, "Perform a DNS lookup")
-	rootCmd.PersistentFlags().BoolVar(&tracerouteFlag, "traceroute", true, "Perform a traceroute")
-	rootCmd.PersistentFlags().BoolVar(&whoisFlag, "whois", true, "Perform a WHOIS lookup")
+	rootCmd.PersistentFlags().BoolVar(&nslookupFlag, "nslookup", false, "Perform a DNS lookup")
+	rootCmd.PersistentFlags().BoolVar(&tracerouteFlag, "traceroute", false, "Perform a traceroute")
+	rootCmd.PersistentFlags().BoolVar(&whoisFlag, "whois", false, "Perform a WHOIS lookup")
 	rootCmd.PersistentFlags().BoolVar(&sublist3rFlag, "sublist3r", false, "Perform a sublist3r lookup")
 	rootCmd.PersistentFlags().BoolVar(&subfinderFlag, "subfinder", false, "Perform a subfinder lookup")
 	rootCmd.PersistentFlags().BoolVar(&findomainFlag, "findomain", false, "Perform a findomain lookup")
-	rootCmd.PersistentFlags().BoolVar(&dnsmapFlag, "dnsmap", true, "Perform a dnsmap lookup")
+	rootCmd.PersistentFlags().BoolVar(&dnsmapFlag, "dnsmap", false, "Perform a dnsmap lookup")
 	rootCmd.PersistentFlags().BoolVar(&dnsreconFlag, "dnsrecon", false, "Perform a dnsrecon lookup")
-	rootCmd.PersistentFlags().BoolVar(&nmapFlag, "nmap", true, "Perform an Nmap scan")
+	rootCmd.PersistentFlags().BoolVar(&nmapFlag, "nmap", false, "Perform an Nmap scan")
 	rootCmd.PersistentFlags().BoolVar(&etherapeFlag, "etherape", false, "Open EtherApe for network visualization")
-	rootCmd.PersistentFlags().BoolVar(&printFlag, "print", true, "Print results in command line")
+	rootCmd.PersistentFlags().BoolVar(&printFlag, "print", false, "Print results in command line")
 	rootCmd.PersistentFlags().StringVarP(&outputFlag, "output", "o", "", "Output HTML report file")
+
+	viper.BindPFlag("ping", rootCmd.PersistentFlags().Lookup("ping"))
+	viper.BindPFlag("nslookup", rootCmd.PersistentFlags().Lookup("nslookup"))
+	viper.BindPFlag("traceroute", rootCmd.PersistentFlags().Lookup("traceroute"))
+	viper.BindPFlag("whois", rootCmd.PersistentFlags().Lookup("whois"))
+	viper.BindPFlag("sublist3r", rootCmd.PersistentFlags().Lookup("sublist3r"))
+	viper.BindPFlag("subfinder", rootCmd.PersistentFlags().Lookup("subfinder"))
+	viper.BindPFlag("findomain", rootCmd.PersistentFlags().Lookup("findomain"))
+	viper.BindPFlag("dnsmap", rootCmd.PersistentFlags().Lookup("dnsmap"))
+	viper.BindPFlag("dnsrecon", rootCmd.PersistentFlags().Lookup("dnsrecon"))
+	viper.BindPFlag("nmap", rootCmd.PersistentFlags().Lookup("nmap"))
+	viper.BindPFlag("etherape", rootCmd.PersistentFlags().Lookup("etherape"))
+	viper.BindPFlag("print", rootCmd.PersistentFlags().Lookup("print"))
+	viper.BindPFlag("output", rootCmd.PersistentFlags().Lookup("output"))
 
 }
 

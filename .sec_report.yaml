@@ -1,0 +1,14 @@
+options:
+  ping: false
+  nslookup: false
+  traceroute: false
+  whois: true
+  sublist3r: false
+  subfinder: false
+  findomain: false
+  dnsmap: false
+  dnsrecon: false
+  nmap: false
+  etherape: false
+  print: false
+  output: ""
