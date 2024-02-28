@@ -85,6 +85,15 @@ sec_report integra estas herramientas de forma eficiente para recopilar y analiz
 		if pingFlag {
 			fmt.Println("Performing ping...")
 		}
+		if tracerouteFlag {
+			result, err := pentesting.Traceroute(domainOrIP)
+			if err != nil {
+				fmt.Printf("Error al ejecutar traceroute: %v\n", err)
+				return
+			}
+			results.WriteString(fmt.Sprintf("Información de traceroute para la IP %s\n\n", domainOrIP))
+			results.WriteString(result)
+		}
 		if nslookupFlag {
 			result, err := pentesting.Nslookup(domainOrIP)
 			if err != nil {
