@@ -77,53 +77,9 @@ sec_report integra estas herramientas de forma eficiente para recopilar y analiz
 			os.Exit(1)
 		}
 
-		domainOrIP := args[0]
-		fmt.Printf("Generating security report for: %s\n", domainOrIP)
-
-		// var results bytes.Buffer
-		var wg sync.WaitGroup
-
-		// Crear un slice de buffers para los resultados parciales
-		var partial_results []*bytes.Buffer
-
-		// Perform tasks based on flags
-		if pingFlag {
-			fmt.Println("Performing ping...")
-		}
-		if tracerouteFlag {
-			pentesting.RunProgramRoutine(pentesting.Traceroute, domainOrIP, &partial_results, &wg)
-		}
-		if nslookupFlag {
-			pentesting.RunProgramRoutine(pentesting.Nslookup, domainOrIP, &partial_results, &wg)
-		}
-		if whoisFlag {
-			pentesting.RunProgramRoutine(pentesting.Whois, domainOrIP, &partial_results, &wg)
-			fmt.Println(partial_results[0].String())
-		}
-		if nmapFlag {
-			pentesting.RunProgramRoutine(pentesting.Nmap, domainOrIP, &partial_results, &wg)
-		}
-		if dnsmapFlag {
-			pentesting.RunProgramRoutine(pentesting.Dnsmap, domainOrIP, &partial_results, &wg)
-		}
-
-		// Build report from partial results
-		wg.Wait()
-		var results bytes.Buffer
-		for _, result := range partial_results {
-			results.Write(result.Bytes())
-		}
-
-		if outputFlag == "" {
-			fmt.Println(results.String())
-		} else {
-			// Save results to file
-			if err := pentesting.SaveResultsToFile(results, outputFlag); err != nil {
-				fmt.Printf("Error al guardar los resultados en el archivo: %v\n", err)
-				os.Exit(1)
-			}
-			fmt.Printf("Resultados guardados en: %s\n", outputFlag)
-		}
+		url := args[0]
+		fmt.Printf("Generating security report for: %s\n", url)
+		generateReport(url)
 	},
 }
 
@@ -200,5 +156,52 @@ func initConfig() {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	}
+}
+
+func generateReport(url string) {
+
+	// var results bytes.Buffer
+	var wg sync.WaitGroup
+
+	// Crear un slice de buffers para los resultados parciales
+	var partial_results []*bytes.Buffer
+
+	// Perform tasks based on flags
+	if pingFlag {
+		fmt.Println("Performing ping...")
+	}
+	if tracerouteFlag {
+		pentesting.RunProgramRoutine(pentesting.Traceroute, url, &partial_results, &wg)
+	}
+	if nslookupFlag {
+		pentesting.RunProgramRoutine(pentesting.Nslookup, url, &partial_results, &wg)
+	}
+	if whoisFlag {
+		pentesting.RunProgramRoutine(pentesting.Whois, url, &partial_results, &wg)
+	}
+	if nmapFlag {
+		pentesting.RunProgramRoutine(pentesting.Nmap, url, &partial_results, &wg)
+	}
+	if dnsmapFlag {
+		pentesting.RunProgramRoutine(pentesting.Dnsmap, url, &partial_results, &wg)
+	}
+
+	// Build report from partial results
+	wg.Wait()
+	var results bytes.Buffer
+	for _, result := range partial_results {
+		results.Write(result.Bytes())
+	}
+
+	if outputFlag == "" {
+		fmt.Println(results.String())
+	} else {
+		// Save results to file
+		if err := pentesting.SaveResultsToFile(results, outputFlag); err != nil {
+			fmt.Printf("Error al guardar los resultados en el archivo: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("Resultados guardados en: %s\n", outputFlag)
 	}
 }
